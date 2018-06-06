@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/relative"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/linear"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentTop="true"
+        android:gravity="center_vertical|center"
+        android:orientation="vertical">
+
+
+
+        <Button
+            android:id="@+id/imgOriginal"
+            android:layout_width="166dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp"
+            android:background="@drawable/boton"
+            android:text="Imagen Original"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/saberColor"
+            android:layout_width="166dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/boton"
+            android:text="Código RGB"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/grises"
+            android:layout_width="166dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/boton"
+            android:text="Escala de Grises"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/naranja"
+            android:layout_width="166dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/boton"
+            android:text="Naranjitas"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/bordesBW"
+            android:layout_width="166dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/boton"
+            android:text="Bordes B and W"
+            android:textColor="#FFFFFF" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="70dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <ImageView
+                android:id="@+id/imgOpenCV"
+                android:layout_width="97dp"
+                android:layout_height="97dp"
+                android:layout_weight="1"
+                android:visibility="visible"
+                app:srcCompat="@drawable/opencv_logo" />
+
+
+            <ImageView
+                android:id="@+id/imgAndroid"
+                android:layout_width="87dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:visibility="visible"
+                app:srcCompat="@drawable/android_logo" />
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
