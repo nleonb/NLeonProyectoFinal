@@ -419,33 +419,33 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         // http://en.wikipedia.org/wiki/Hue
 
         //Rojo
-        if(r > 100.0 && g < 100.0 && b < 100.0){
+        if(r >= g && g >= b){
             nombreColor = "Tono Rojo";
         }
 
-        //Verde
-        if(r < 100.0 && g > 100.0 && b < 100.0){
-            nombreColor = "Tono Verde";
-        }
-
-        //Azul
-        if(r < 100.0 && g < 100.0 && b > 100.0){
-            nombreColor = "Tono Azul";
-        }
-
         //Amarillo
-        if(r > 180.0 && r < 230.0 && g > 200.0 && g < 230.0 && b < 30.0){
+        if(g > r && r >= b){
             nombreColor = "Tono Amarillo";
         }
 
+        //Verde
+        if(g >= b && b > r){
+            nombreColor = "Tono Verde";
+        }
+
         //Cyan
-        if(r < 10.0 && g > 200.0 && g < 230.0 && b > 230.0 && b < 240.0){
+        if(b > g && g > r){
             nombreColor = "Tono Cyan";
         }
 
+        //Azul
+        if(b > r && r >= g){
+            nombreColor = "Tono Azul";
+        }
+
         //Magenta
-        if(r > 200.0 && r < 220.0 && g > 30.0 && g < 50.0 && b > 220.0 && b < 240.0){
-            nombreColor = "Magenta";
+        if(r >= b && b > g){
+            nombreColor = "Tono Magenta";
         }
 
         //Negro
