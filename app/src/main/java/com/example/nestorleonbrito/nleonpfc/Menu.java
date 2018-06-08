@@ -18,11 +18,14 @@ public class Menu extends Activity{
         layoutParams.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+
+        //Inflar imagenes que se verán en el menú
         ImageView imgOpenCV = (ImageView) findViewById(R.id.imgOpenCV);
         imgOpenCV.setImageResource(R.drawable.opencv_logo);
         ImageView imgAndroid = (ImageView) findViewById(R.id.imgAndroid);
         imgAndroid.setImageResource(R.drawable.android_logo);
 
+        //Inflar botnoes
         Button botonImagenOriginal = (Button)findViewById(R.id.imgOriginal);
         Button botonSaberColor = (Button)findViewById(R.id.saberColor);
         Button botonBordesBW = (Button)findViewById(R.id.bordesBW);

@@ -61,8 +61,11 @@ import static org.opencv.imgproc.Imgproc.MORPH_RECT;
 import static org.opencv.imgproc.Imgproc.getStructuringElement;
 
 public class MainActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
-    private static final String TAG = "DaltonicApp::Activity";
 
+
+    private static final String TAG = "NLeonApp";
+
+    //Cargar librerías de OpenCV
     static {
         if(!OpenCVLoader.initDebug()){
             Log.d("NLeonApp", "OenCV no cargado");
@@ -72,11 +75,14 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         }
     }
 
+    //Alto y acncho de la camara con la que se van a crear los objetos Mat
     private int alto;
     private int ancho;
+
+    // Tipo de boton que se ha pulsado en la actividad antrior
     private String filtro;
 
-    //Color Naranja
+    //GAma de colores para detectar el color Naranja y/o rojo
     //min
     int iLowH = 110;
     int iLowS = 50;
@@ -87,39 +93,40 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     int iHighS = 255;
     int iHighV = 255;
 
+    //Objetos de tipo Scalar para poder crear con los que se daran los rangos de colores RGB
     Scalar sc1;
     Scalar sc2;
 
+    // objetos de tipo Mat que son los que finalmente se ven en la pantalla
     private  Mat imgHSV;
     private Mat imgThresholded;
 
-    //Cámara
+    //Cámara de OpenCv
     private JavaCameraView  camara;
 
+    // Boton de salvar la imagen
     private Button btnSaveImg;
 
-     private Uri file;
+    //Objeto Uri para almacenar la imagen
+    private Uri file;
 
-
-
-    public MainActivity() {
-        Log.i(TAG, "Instantiated new " + this.getClass());
-    }
 
     /**
-     * Called when the activity is first created.
+     * Metodo llamado cuando se lanza la actividad.
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
-        Log.i(TAG, "called onCreate");
+        Log.i(TAG, " onCreate");
 
         super.onCreate(savedInstanceState);
 
+        // Orientación. Se fija en landscape por que al girar elmovil la imgen de la camara no gira.
+        // y solo giran el boton
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        //Intento de Fullscreen, OpenCV No quiere en galaxy nexus, sí en galaxy 4 :(
+        //Fullscreen
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -129,29 +136,32 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
         layoutParams.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL;
 
-
+        // se infla la activiad
         setContentView(R.layout.activity_main);
 
+        // se crean los objetos Scalar que luego se utilizará
         sc1 = new Scalar(iLowH,iLowS,iLowV);
         sc2 = new Scalar(iHighH,iHighS,iHighV);
 
-
+        //se obtiene el boton pulsado de la actividad anterior
         filtro = getIntent().getExtras().getString("filtro");
 
 
-        //connect the camera
+        //Se conecta la camara de OpenCV
         camara = (JavaCameraView)findViewById(R.id.camara_java);
         camara.getVisibility();
         camara.setCameraIndex(0);
         camara.setVisibility(CameraBridgeViewBase.VISIBLE);
 
-        //set callback function
+        //callback function
         camara.setCvCameraViewListener(this);
 
         camara.enableView();
 
+        //Inflado de boton save
         btnSaveImg = (Button) findViewById(R.id.btnSaveImage);
 
+        // metodo de guardar imagen en internal storge
         btnSaveImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,10 +172,13 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
     }
 
+    /*
+    Metodo para guardar la imagen que se esta viendo en ese momento
+     */
     private void savePicture() {
 
-        Log.d("NLeonApp", "Entro en Save");
         Bitmap bmp = null;
+        //Cambio de imagen Mat a bitmap
         try {
             bmp = Bitmap.createBitmap(imgThresholded.cols(), imgThresholded.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(imgThresholded, bmp);
@@ -176,14 +189,17 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         ContextWrapper wrapper = new ContextWrapper(getApplicationContext());
 
+        //Directorio donde se almacenarán las imagenes
         File directory = wrapper.getDir("Images",MODE_APPEND);
 
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
+        // Nombre unico de la imagen con el timestamp
         String imgTittle = "IMG_"+timestamp+".jpg";
 
         File file = new File(directory, imgTittle);
 
+        //Flujo se escritura de imagen
         try{
             OutputStream os = null;
             os = new FileOutputStream(file);
@@ -196,6 +212,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             e.printStackTrace();
         }
 
+
         String savedImageURL = MediaStore.Images.Media.insertImage(
                 getContentResolver(),
                 bmp,
@@ -204,12 +221,13 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         );
 
         Uri savedImageURI = Uri.parse(savedImageURL);
-        // Display saved image uri to TextView
+        // Mensaje de que la imagen ha sido guardada.
         Log.d (TAG,"Image saved in internal storage.\n" + savedImageURI);
 
         Toast.makeText (getApplicationContext() , "Imagen Guardada", Toast.LENGTH_SHORT).show();
     }
 
+    //Si pasa por onPause elimino la cámara
     @Override
     public void onPause() {
         super.onPause();
@@ -217,119 +235,35 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
             camara.disableView();
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
     }
 
+
+    //Si pasa por onDestroy elimino la cámara
     public void onDestroy() {
         super.onDestroy();
         if (camara != null)
             camara.disableView();
     }
 
-
-//    //Creamos el menu y las opciones
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        Log.i(TAG, "called onCreateOptionsMenu");
-//        menuTipoCamara = menu.add("Cambiar Camara Nativa/Java");
-//        menuBlancoYNegro = menu.add("Blanco y Negro");
-//        menuModoReconocimiento = menu.add("Modo Preciso / Rango de Color");
-//
-//        SubMenu subMenu = menu.addSubMenu(4, 4, 4, "Selecciona una resolución");
-//        subMenu.add(1, 10, 1, "Alta Resolución (1280x720)");
-//        subMenu.add(1, 11, 2, "Media Resolución (960x720)");
-//        subMenu.add(1, 12, 3, "Baja Resolución (800x480)");
-//
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        String mensajeToast = new String();
-//        Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-//
-//        //Boton cambia tipo de camara
-//        if (item == menuTipoCamara) {
-//            camara.setVisibility(SurfaceView.GONE);
-//            camara = (JavaCameraView ) findViewById(R.id.camara_java);
-//            mensajeToast = "Cámara Java";
-//
-//
-//            camara.setVisibility(SurfaceView.VISIBLE);
-//            camara.setCvCameraViewListener(this);
-//            camara.enableView();
-//            Toast toast = Toast.makeText(this, mensajeToast, Toast.LENGTH_LONG);
-//            toast.show();
-//        }
-//        //Fin Tipo Camara
-//
-//
-//        //Boton pone blanco y negro - Grises
-//        if (item == menuBlancoYNegro) {
-//            if (modoGrises) {
-//                modoGrises = false;
-//                Toast toast = Toast.makeText(this, "'Modo Grises' desactivado.\n'Modo Normal' habilitado.", Toast.LENGTH_LONG);
-//                toast.show();
-//            } else {
-//                modoGrises = true;
-//                Toast toast = Toast.makeText(this, "'Modo Normal' desactivado.\n'Modo Grises' habilitado.", Toast.LENGTH_LONG);
-//                toast.show();
-//            }
-//        }
-//        //Fin Modo Grises
-//
-//        //Boton Modo Preciso / Modo Tonalidades
-//        if (item == menuModoReconocimiento) {
-//            if (modoReconocimiento) {
-//                modoReconocimiento = false;
-//                Toast toast = Toast.makeText(this, "'Modo Preciso' desactivado.\n'Modo Tonalidades' habilitado.", Toast.LENGTH_LONG);
-//                toast.show();
-//            } else {
-//                modoReconocimiento = true;
-//                Toast toast = Toast.makeText(this, "'Modo Tonalidades' desactivado.\n'Modo Preciso' habilitado.", Toast.LENGTH_LONG);
-//                toast.show();
-//            }
-//        }
-//
-//
-//        //Submenu para cambiar el tamaño del HUD
-//        switch (item.getItemId()) {
-//            case 10: //Id del menú, para combrobar que se ha pulsado
-//                ancho = 1280;
-//                alto = 720;
-//                Toast toast = Toast.makeText(this, "Resolución del HUD máxima", Toast.LENGTH_LONG);
-//                toast.show();
-//                break;
-//            case 11:
-//                ancho = 960;
-//                alto = 720;
-//                toast = Toast.makeText(this, "Resolución del HUD media", Toast.LENGTH_LONG);
-//                toast.show();
-//                break;
-//            case 12:
-//                ancho = 800;
-//                alto = 480;
-//                toast = Toast.makeText(this, "Resolución del HUD mínima", Toast.LENGTH_LONG);
-//                toast.show();
-//                break;
-//
-//        }
-//
-//        return true;
-//    }
-
-
+    // Cuando la camara se lanza obtengo el alto y el ancho
     public void onCameraViewStarted(int width, int height) {
         alto = height;
         ancho = height;
     }
 
+    @Override
     public void onCameraViewStopped() {
 
     }
 
+    /*
+    Con este metodo obtengo el frame que se esta obteniedo de la cámara y es aqui donde
+    se realizan todas las acciones segun la elección del usuario
+     */
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
@@ -363,14 +297,25 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         return imgThresholded;
     }
 
+    /*
+    Metodo que devielve a imagen sin aplicar ningn tipo de tratamiento de imagen
+     */
     private Mat original(CameraBridgeViewBase.CvCameraViewFrame frame) {
         return frame.rgba();
     }
 
+    /*
+    Con este metodo se devuelve un filtro de escala de gises aplicado sobre la imagen
+    original
+     */
     private Mat grises(CameraBridgeViewBase.CvCameraViewFrame frame) {
         return frame.gray();
     }
 
+    /*
+    Con este metodo se regula que solo se obtengan solo los objetos cuyo culor estñe entre los rangos
+    establecidos. En este caso será un fondo negro y en blanco se observa los colores establecidos
+     */
     private Mat naranja(CameraBridgeViewBase.CvCameraViewFrame frame) {
         imgHSV = new Mat(ancho,alto, CvType.CV_16UC4);
         imgThresholded = new Mat(ancho,alto,CvType.CV_16UC4);
@@ -382,7 +327,6 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy = new Mat();
-        // find contours:
         Imgproc.findContours(imgThresholded, contours, hierarchy, Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
         for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
             Imgproc.drawContours(imgThresholded, contours, contourIdx, new Scalar(130, 255, 255), -1);
@@ -391,6 +335,10 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         return imgThresholded;
     }
 
+
+    /*
+    Con este metodo se obtiene, con una imagen de fondo negro, los bordes que tiene la imagen pintados en blanco.
+     */
     private Mat bordesBW(CameraBridgeViewBase.CvCameraViewFrame frame) {
         imgThresholded = new Mat(ancho,alto,CvType.CV_16UC4);
         Imgproc.Canny(frame.gray(), imgThresholded,120,180);
@@ -398,30 +346,32 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         return imgThresholded;
     }
 
+    /*
+    Con este metodo se realiza una mirilla al centro de la imgen y que diga el código rgb
+    y el nombre del color que está apuntando
+     */
     private Mat apuntarColor(CameraBridgeViewBase.CvCameraViewFrame frame) {
+        //se obtiene la imagen original
+        Mat mat = frame.rgba();
+
+        // Pixel central
+        int alto = mat.height() / 2;
+        int ancho = mat.width() / 2;
+
+        //Se recupera el color del pixel central
+        double[] color = mat.get(alto, ancho);
+
+        //El color inverso, para pintar la mirilla y verlo siempre
+        double[] colorInverso = { 255 - color[0], 255 - color[1], 255 - color[2], 255};
+
+        //Mirilla
+
+        //Obtención de alto y ancho de la pantalla
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
         int width = metrics.widthPixels; // ancho absoluto en pixels
         int height = metrics.heightPixels; // alto absoluto en pixels
-
-        Log.d(TAG, "Ancho = "+width+" Alto = "+height);
-        Mat mat = frame.rgba();
-
-        // PIXEL CENTRAL
-        int alto = mat.height() / 2;	//camera.getHeight() / 2;
-        int ancho = mat.width() / 2;	//camera.getWidth() / 2;
-
-        //Recuperamos el color del pixel central
-        double[] color = mat.get(alto, ancho);
-
-        //Log en consola para ver si saca los colores
-        //Log.i(TAG , "COLORES RGB -->"+ color[0] +";"+ color[1] +";"+ color[2] +"");
-
-        //El color inverso, para pintar el crosshair y verlo siempre
-        double[] colorInverso = { 255 - color[0], 255 - color[1], 255 - color[2], 255};
-
-        //START CROSSHAIR
 
         //Lineas Horizontales
         int altoCamara = height;
@@ -431,8 +381,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         Imgproc.line(mat, new Point(anchoCamara + 25, altoCamara), new Point(anchoCamara + anchoCamara, altoCamara), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Derecha
 
         //Lineas Verticales
-        Imgproc.line(mat, new Point(anchoCamara, 0), new Point(anchoCamara, altoCamara - 25), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Top
-        Imgproc.line(mat, new Point(anchoCamara, altoCamara + 25), new Point(anchoCamara, altoCamara + altoCamara), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Bottom
+        Imgproc.line(mat, new Point(anchoCamara, 0), new Point(anchoCamara, altoCamara - 25), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Arriba
+        Imgproc.line(mat, new Point(anchoCamara, altoCamara + 25), new Point(anchoCamara, altoCamara + altoCamara), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Abajo
 
         //Circulo interno
         Imgproc.circle(mat, new Point(ancho, alto), 3, new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), -1);
@@ -443,60 +393,59 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
 
         //TEXTO
-        //Texto generado en cada frame con el color en BGR (float)
-        //Sí, BGR, OpenCV maneja los colores como Blue Green Red, no como Red Green Blue
+
+        //Texto generado en cada frame con el color en BGR
         String texto = "RGB: " + color[0] + " " + color[1] + " " + color[2];
-        //Core.putText(img, text, org, fontFace, fontScale, color);
         Imgproc.putText(mat, texto, new Point(10, 80), 3, 2, new Scalar(255, 255, 255, 255), 2);
 
-        //Texto Color Nombre
+        //Texto con el nombre del color
         String nombreColor = getColorName(color[0], color[1], color[2]);
         Imgproc.putText(mat, nombreColor, new Point(ancho + 30, 80), 3, 2, new Scalar(255, 255, 255, 255), 2);
 
         //Rectángulo coloreado del color actual
-        //Core.rectangle(img, pt1, pt2, color, thickness);
-        // Si thickness < 0, hace un fill del rectángulo (Lo rellena)
         Imgproc.rectangle(mat, new Point( 10 , 110), new Point(anchoCamara - 10, 100), new Scalar(color[0], color[1], color[2], 255), -1); //Al pintar, usamos RGBA
 
 
         return mat;
     }
 
-
+    /*
+    Metodo que devuelve el nombre del color del punto central del la imagen
+     */
     public String getColorName(double r, double g, double b) {
 
         String nombreColor = null;
-// Calculamos a partir del Hue, en vez del valor... Así tomamos rangos
+        // Se calcula a partir del Hue, jugnado con los rangos
         // http://en.wikipedia.org/wiki/Hue
 
         //Rojo
-        if(r >= g && g >= b){
+        if(r > 100.0 && g < 100.0 && b < 100.0){
             nombreColor = "Tono Rojo";
         }
 
-        //Amarillo
-        if(g > r && r >= b){
-            nombreColor = "Tono Amarillo";
-        }
-
         //Verde
-        if(g >= b && b > r){
+        if(r < 100.0 && g > 100.0 && b < 100.0){
             nombreColor = "Tono Verde";
         }
 
-        //Cyan
-        if(b > g && g > r){
-            nombreColor = "Tono Cyan";
-        }
-
         //Azul
-        if(b > r && r >= g){
+        if(r < 100.0 && g < 100.0 && b > 100.0){
             nombreColor = "Tono Azul";
         }
 
+        //Amarillo
+        if(r > 180.0 && r < 230.0 && g > 200.0 && g < 230.0 && b < 30.0){
+            nombreColor = "Tono Amarillo";
+        }
+
+        //Cyan
+        if(r < 10.0 && g > 200.0 && g < 230.0 && b > 230.0 && b < 240.0){
+            nombreColor = "Tono Cyan";
+        }
+
         //Magenta
-        if(r >= b && b > g){
-            nombreColor = "Tono Magenta";
+        if(r > 200.0 && r < 220.0 && g > 30.0 && g < 50.0 && b > 220.0 && b < 240.0){
+            nombreColor = "Magenta";
         }
 
         //Negro
