@@ -98,8 +98,11 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     Scalar sc2;
 
     // objetos de tipo Mat que son los que finalmente se ven en la pantalla
-    private  Mat imgHSV;
+    private Mat imgHSV;
     private Mat imgThresholded;
+    private Mat mat;
+    private Mat imgDilatedMat;
+    private Mat hierarchy;
 
     //Cámara de OpenCv
     private JavaCameraView  camara;
@@ -253,6 +256,16 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     public void onCameraViewStarted(int width, int height) {
         alto = height;
         ancho = height;
+
+        if (filtro.equals("naranja") || filtro.equals("bordesBw")){
+            mat = new Mat(ancho,alto,CvType.CV_16UC4);
+
+            if (filtro.equals("naranja")){
+                imgHSV = new Mat(ancho,alto, CvType.CV_16UC4);
+                imgDilatedMat = new Mat();
+                hierarchy = new Mat();
+            }
+        }
     }
 
     @Override
@@ -317,22 +330,18 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     establecidos. En este caso será un fondo negro y en blanco se observa los colores establecidos
      */
     private Mat naranja(CameraBridgeViewBase.CvCameraViewFrame frame) {
-        imgHSV = new Mat(ancho,alto, CvType.CV_16UC4);
-        imgThresholded = new Mat(ancho,alto,CvType.CV_16UC4);
         Imgproc.cvtColor(frame.rgba(), imgHSV, Imgproc.COLOR_BGR2HSV);
-        Core.inRange(imgHSV,sc1,sc2,imgThresholded);
+        Core.inRange(imgHSV,sc1,sc2,mat);
 
-        Mat imgDilatedMat = new Mat();
-        Imgproc.dilate ( imgThresholded, imgDilatedMat, new Mat() );
+        Imgproc.dilate ( mat, imgDilatedMat, new Mat() );
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(imgThresholded, contours, hierarchy, Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(mat, contours, hierarchy, Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
         for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
-            Imgproc.drawContours(imgThresholded, contours, contourIdx, new Scalar(130, 255, 255), -1);
+            Imgproc.drawContours(mat, contours, contourIdx, new Scalar(130, 255, 255), -1);
         }
 
-        return imgThresholded;
+        return mat;
     }
 
 
@@ -340,10 +349,12 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     Con este metodo se obtiene, con una imagen de fondo negro, los bordes que tiene la imagen pintados en blanco.
      */
     private Mat bordesBW(CameraBridgeViewBase.CvCameraViewFrame frame) {
-        imgThresholded = new Mat(ancho,alto,CvType.CV_16UC4);
-        Imgproc.Canny(frame.gray(), imgThresholded,120,180);
+        Mat gray = frame.gray();
+        Imgproc.Canny(gray, mat,80,90);
+        Imgproc.cvtColor(mat, gray, Imgproc.COLOR_GRAY2BGRA, 4);
+        gray.release();
 
-        return imgThresholded;
+        return mat;
     }
 
     /*
