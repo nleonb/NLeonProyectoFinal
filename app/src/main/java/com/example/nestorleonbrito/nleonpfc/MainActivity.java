@@ -385,8 +385,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         int height = metrics.heightPixels; // alto absoluto en pixels
 
         //Lineas Horizontales
-        int altoCamara = height;
-        int anchoCamara = width;
+        int altoCamara = mat.height();
+        int anchoCamara = mat.width();
 
         Imgproc.line(mat, new Point(0, altoCamara), new Point(anchoCamara - 25, altoCamara), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Izquierda
         Imgproc.line(mat, new Point(anchoCamara + 25, altoCamara), new Point(anchoCamara + anchoCamara, altoCamara), new Scalar(colorInverso[0], colorInverso[1], colorInverso[2]), 1, 1, 1); //Derecha
